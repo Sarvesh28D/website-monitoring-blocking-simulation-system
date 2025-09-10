@@ -308,4 +308,122 @@ class ChartDataManager
             'unique_sites' => (int)$summary_data['unique_sites']
         ];
     }
+    
+    /**
+     * Prepare weekly top sites report data for Chart.js horizontal bar chart
+     * 
+     * @param array $weekly_data Raw weekly report data from database
+     * @return string JSON formatted data for Chart.js
+     */
+    public function prepareWeeklyTopSitesChart(array $weekly_data): string 
+    {
+        $labels = [];
+        $visit_data = [];
+        $user_data = [];
+        $block_rate_data = [];
+        
+        foreach ($weekly_data as $site) {
+            $labels[] = $site['url'];
+            $visit_data[] = (int)$site['total_visits'];
+            $user_data[] = (int)$site['unique_users'];
+            $block_rate_data[] = (float)$site['block_rate'];
+        }
+        
+        $chart_data = [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'Total Visits',
+                    'data' => $visit_data,
+                    'backgroundColor' => 'rgba(52, 152, 219, 0.8)',
+                    'borderColor' => 'rgba(52, 152, 219, 1)',
+                    'borderWidth' => 1,
+                    'borderRadius' => 4
+                ],
+                [
+                    'label' => 'Unique Users',
+                    'data' => $user_data,
+                    'backgroundColor' => 'rgba(155, 89, 182, 0.8)',
+                    'borderColor' => 'rgba(155, 89, 182, 1)',
+                    'borderWidth' => 1,
+                    'borderRadius' => 4
+                ]
+            ]
+        ];
+        
+        return json_encode($chart_data);
+    }
+    
+    /**
+     * Prepare weekly report table data with formatting
+     * 
+     * @param array $weekly_data Raw weekly report data from database
+     * @return array Formatted table data
+     */
+    public function formatWeeklyReportTable(array $weekly_data): array 
+    {
+        $formatted_data = [];
+        
+        foreach ($weekly_data as $index => $site) {
+            $formatted_data[] = [
+                'rank' => $index + 1,
+                'url' => $site['url'],
+                'total_visits' => number_format((int)$site['total_visits']),
+                'unique_users' => (int)$site['unique_users'],
+                'blocked_visits' => number_format((int)$site['blocked_visits']),
+                'allowed_visits' => number_format((int)$site['allowed_visits']),
+                'block_rate' => number_format((float)$site['block_rate'], 1) . '%',
+                'avg_response_time' => 'N/A', // Field not available in current schema
+                'days_active' => (int)$site['days_active'],
+                'first_visit' => date('M j, H:i', strtotime($site['first_visit'])),
+                'last_visit' => date('M j, H:i', strtotime($site['last_visit'])),
+                'peak_day' => !empty($site['peak_day']) ? $site['peak_day']['day_name'] . ' (' . $site['peak_day']['peak_visits'] . ' visits)' : 'N/A',
+                'user_count_badge' => $this->getUserCountBadge((int)$site['unique_users']),
+                'block_rate_badge' => $this->getBlockRateBadge((float)$site['block_rate']),
+                'activity_badge' => $this->getActivityBadge((int)$site['days_active'])
+            ];
+        }
+        
+        return $formatted_data;
+    }
+    
+    /**
+     * Get badge class for user count
+     * 
+     * @param int $user_count Number of unique users
+     * @return string CSS badge class
+     */
+    private function getUserCountBadge(int $user_count): string 
+    {
+        if ($user_count >= 4) return 'badge bg-success';
+        if ($user_count >= 2) return 'badge bg-warning';
+        return 'badge bg-secondary';
+    }
+    
+    /**
+     * Get badge class for block rate
+     * 
+     * @param float $block_rate Block rate percentage
+     * @return string CSS badge class
+     */
+    private function getBlockRateBadge(float $block_rate): string 
+    {
+        if ($block_rate >= 50) return 'badge bg-danger';
+        if ($block_rate >= 20) return 'badge bg-warning';
+        if ($block_rate > 0) return 'badge bg-info';
+        return 'badge bg-success';
+    }
+    
+    /**
+     * Get badge class for activity level
+     * 
+     * @param int $days_active Number of days active
+     * @return string CSS badge class
+     */
+    private function getActivityBadge(int $days_active): string 
+    {
+        if ($days_active >= 6) return 'badge bg-success';
+        if ($days_active >= 3) return 'badge bg-warning';
+        return 'badge bg-secondary';
+    }
 }

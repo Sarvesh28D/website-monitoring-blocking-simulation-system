@@ -57,6 +57,7 @@ class ViewRenderer
         <?php echo $this->renderFilters(); ?>
         <?php echo $this->renderSummaryCards(); ?>
         <?php echo $this->renderCharts(); ?>
+        <?php echo $this->renderWeeklyReport(); ?>
         <?php echo $this->renderDataTables(); ?>
     </div>
     
@@ -161,6 +162,89 @@ class ViewRenderer
             display: none;
             text-align: center;
             padding: 2rem;
+        }
+        
+        /* Weekly Report Styles */
+        .report-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .report-badge {
+            display: flex;
+            align-items: center;
+        }
+        
+        .weekly-summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-label {
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+        
+        .summary-value {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            text-align: right;
+            flex: 1;
+        }
+        
+        .site-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(52, 152, 219, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #weeklyReportChart {
+            height: 300px !important;
+        }
+        
+        @media (max-width: 768px) {
+            .report-container {
+                padding: 1rem;
+            }
+            
+            .weekly-summary {
+                margin-top: 1rem;
+            }
+            
+            .summary-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+            
+            .summary-value {
+                text-align: left;
+            }
         }
         ";
     }
@@ -354,6 +438,147 @@ class ViewRenderer
     }
     
     /**
+     * Render weekly top sites report section
+     * 
+     * @return string Weekly report HTML
+     */
+    private function renderWeeklyReport(): string 
+    {
+        $weekly_data = $this->chart_manager->formatWeeklyReportTable($this->data['weekly_report']);
+        
+        $chart_rows = '';
+        foreach ($weekly_data as $site) {
+            $chart_rows .= "
+            <tr>
+                <td class='text-center'><strong>{$site['rank']}</strong></td>
+                <td>
+                    <div class='d-flex align-items-center'>
+                        <div class='site-icon me-2'>
+                            <i class='fas fa-globe text-primary'></i>
+                        </div>
+                        <div>
+                            <strong>{$site['url']}</strong>
+                            <div class='text-muted small'>{$site['peak_day']}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class='text-center'>
+                    <strong class='text-primary'>{$site['total_visits']}</strong>
+                    <div class='text-muted small'>{$site['days_active']}/7 days</div>
+                </td>
+                <td class='text-center'>
+                    <span class='{$site['user_count_badge']}'>{$site['unique_users']}</span>
+                </td>
+                <td class='text-center'>
+                    <div class='text-success'>{$site['allowed_visits']}</div>
+                    <div class='text-danger small'>{$site['blocked_visits']} blocked</div>
+                </td>
+                <td class='text-center'>
+                    <span class='{$site['block_rate_badge']}'>{$site['block_rate']}</span>
+                </td>
+                <td class='text-center text-muted'>
+                    <div>{$site['avg_response_time']}</div>
+                    <div class='small'>{$site['first_visit']} - {$site['last_visit']}</div>
+                </td>
+            </tr>";
+        }
+        
+        return "
+        <div class='row mb-4'>
+            <div class='col-12'>
+                <div class='report-container'>
+                    <div class='d-flex justify-content-between align-items-center mb-4'>
+                        <h3 class='mb-0'>
+                            <i class='fas fa-calendar-week me-2'></i>Weekly Top Sites Report
+                        </h3>
+                        <div class='report-badge'>
+                            <span class='badge bg-primary fs-6'>
+                                <i class='fas fa-chart-line me-1'></i>
+                                Last 7 Days
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class='row mb-4'>
+                        <div class='col-lg-8'>
+                            <div class='chart-container'>
+                                <h5 class='mb-3'>
+                                    <i class='fas fa-chart-bar me-2'></i>Top 10 Sites - Visits & Users
+                                </h5>
+                                <canvas id='weeklyReportChart' height='300'></canvas>
+                            </div>
+                        </div>
+                        <div class='col-lg-4'>
+                            <div class='weekly-summary'>
+                                <h5 class='mb-3'>
+                                    <i class='fas fa-info-circle me-2'></i>Report Summary
+                                </h5>
+                                <div class='summary-item'>
+                                    <div class='summary-label'>Total Sites Analyzed</div>
+                                    <div class='summary-value'>" . count($weekly_data) . "</div>
+                                </div>
+                                <div class='summary-item'>
+                                    <div class='summary-label'>Most Active Site</div>
+                                    <div class='summary-value'>" . ($weekly_data[0]['url'] ?? 'N/A') . "</div>
+                                </div>
+                                <div class='summary-item'>
+                                    <div class='summary-label'>Highest Block Rate</div>
+                                    <div class='summary-value'>" . ($this->getHighestBlockRate($weekly_data)) . "</div>
+                                </div>
+                                <div class='summary-item'>
+                                    <div class='summary-label'>Report Period</div>
+                                    <div class='summary-value'>{$this->data['date_range']}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class='table-responsive'>
+                        <table class='table table-hover'>
+                            <thead class='table-dark'>
+                                <tr>
+                                    <th class='text-center'>#</th>
+                                    <th>Website</th>
+                                    <th class='text-center'>Total Visits</th>
+                                    <th class='text-center'>Users</th>
+                                    <th class='text-center'>Allow/Block</th>
+                                    <th class='text-center'>Block Rate</th>
+                                    <th class='text-center'>Time Period</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {$chart_rows}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>";
+    }
+    
+    /**
+     * Get the highest block rate from weekly data
+     * 
+     * @param array $weekly_data Formatted weekly data
+     * @return string Highest block rate with site
+     */
+    private function getHighestBlockRate(array $weekly_data): string 
+    {
+        $highest = ['block_rate' => '0.0%', 'url' => 'N/A'];
+        
+        foreach ($weekly_data as $site) {
+            $rate = (float) str_replace('%', '', $site['block_rate']);
+            $highest_rate = (float) str_replace('%', '', $highest['block_rate']);
+            
+            if ($rate > $highest_rate) {
+                $highest = ['block_rate' => $site['block_rate'], 'url' => $site['url']];
+            }
+        }
+        
+        return $highest['block_rate'] . " ({$highest['url']})";
+    }
+    
+    /**
      * Render data tables
      * 
      * @return string Tables HTML
@@ -469,6 +694,7 @@ class ViewRenderer
     {
         $top_sites_data = $this->chart_manager->prepareTopSitesChart($this->data['chart_data']);
         $daily_trends_data = $this->chart_manager->prepareDailyTrendsChart($this->data['daily_trends']);
+        $weekly_report_data = $this->chart_manager->prepareWeeklyTopSitesChart($this->data['weekly_report']);
         $bar_options = $this->chart_manager->getChartOptions('bar');
         $line_options = $this->chart_manager->getChartOptions('line');
         
@@ -487,6 +713,43 @@ class ViewRenderer
             type: 'line',
             data: {$daily_trends_data},
             options: {$line_options}
+        });
+        
+        // Weekly Report Chart
+        const weeklyReportCtx = document.getElementById('weeklyReportChart').getContext('2d');
+        new Chart(weeklyReportCtx, {
+            type: 'bar',
+            data: {$weekly_report_data},
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Top 10 Most Visited Sites - Weekly Report'
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
         });
         
         // Auto-refresh page every 5 minutes

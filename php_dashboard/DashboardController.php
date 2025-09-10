@@ -152,6 +152,119 @@ class DashboardController
     }
     
     /**
+     * Get weekly report of top 10 visited sites with comprehensive analytics
+     * 
+     * @param array $filters Filter parameters (defaults to last 7 days)
+     * @return array Weekly top sites report data
+     */
+    public function getWeeklyTopSitesReport(array $filters = []): array 
+    {
+        try {
+            // Default to last 7 days if no filters provided
+            if (empty($filters['date_from']) || empty($filters['date_to'])) {
+                $filters['date_from'] = date('Y-m-d', strtotime('-7 days'));
+                $filters['date_to'] = date('Y-m-d');
+            }
+            
+            $where_info = $this->buildWhereClause($filters);
+            
+            $sql = "
+                SELECT 
+                    sv.url,
+                    COUNT(*) as total_visits,
+                    COUNT(DISTINCT sv.user_id) as unique_users,
+                    COUNT(CASE WHEN sv.status = 'blocked' THEN 1 END) as blocked_visits,
+                    COUNT(CASE WHEN sv.status = 'allowed' THEN 1 END) as allowed_visits,
+                    ROUND((COUNT(CASE WHEN sv.status = 'blocked' THEN 1 END) / COUNT(*)) * 100, 2) as block_rate,
+                    MIN(sv.visit_timestamp) as first_visit,
+                    MAX(sv.visit_timestamp) as last_visit,
+                    COUNT(DISTINCT DATE(sv.visit_timestamp)) as days_active,
+                    GROUP_CONCAT(DISTINCT sv.user_id ORDER BY sv.user_id SEPARATOR ',') as user_list
+                FROM sites_visited sv
+                {$where_info['clause']}
+                GROUP BY sv.url
+                ORDER BY total_visits DESC, unique_users DESC
+                LIMIT 10
+            ";
+            
+            $result = queryAll($sql, $where_info['params']);
+            
+            // Add weekly trend data for each site
+            foreach ($result as &$site) {
+                $site['daily_breakdown'] = $this->getDailyBreakdownForSite($site['url'], $filters);
+                $site['peak_day'] = $this->getPeakDayForSite($site['url'], $filters);
+            }
+            
+            return $result;
+            
+        } catch (Exception $e) {
+            $this->error_message = "Failed to get weekly top sites report: " . $e->getMessage();
+            error_log("Dashboard error getting weekly report: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Get daily breakdown for a specific site
+     * 
+     * @param string $site_url Site URL
+     * @param array $filters Date filters
+     * @return array Daily visit counts
+     */
+    private function getDailyBreakdownForSite(string $site_url, array $filters): array 
+    {
+        try {
+            $sql = "
+                SELECT 
+                    DATE(visit_timestamp) as visit_date,
+                    COUNT(*) as visits,
+                    COUNT(CASE WHEN status = 'blocked' THEN 1 END) as blocked
+                FROM sites_visited 
+                WHERE url = ? 
+                AND DATE(visit_timestamp) BETWEEN ? AND ?
+                GROUP BY DATE(visit_timestamp)
+                ORDER BY visit_date
+            ";
+            
+            return queryAll($sql, [$site_url, $filters['date_from'], $filters['date_to']]);
+        } catch (Exception $e) {
+            error_log("Error getting daily breakdown for site {$site_url}: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Get peak day for a specific site
+     * 
+     * @param string $site_url Site URL
+     * @param array $filters Date filters
+     * @return array Peak day information
+     */
+    private function getPeakDayForSite(string $site_url, array $filters): array 
+    {
+        try {
+            $sql = "
+                SELECT 
+                    DATE(visit_timestamp) as peak_date,
+                    COUNT(*) as peak_visits,
+                    DAYNAME(visit_timestamp) as day_name
+                FROM sites_visited 
+                WHERE url = ? 
+                AND DATE(visit_timestamp) BETWEEN ? AND ?
+                GROUP BY DATE(visit_timestamp)
+                ORDER BY peak_visits DESC
+                LIMIT 1
+            ";
+            
+            $result = queryOne($sql, [$site_url, $filters['date_from'], $filters['date_to']]);
+            return $result ?: [];
+        } catch (Exception $e) {
+            error_log("Error getting peak day for site {$site_url}: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
      * Get daily trends for the specified period
      * 
      * @param array $filters Filter parameters
@@ -261,6 +374,7 @@ class DashboardController
             'users' => $this->getUsers(),
             'statistics' => $this->getUserStatistics($filters),
             'chart_data' => $this->getTopSites($filters),
+            'weekly_report' => $this->getWeeklyTopSitesReport($filters),
             'daily_trends' => $this->getDailyTrends($filters),
             'blocked_sites' => $this->getBlockedSites($filters),
             'summary' => $this->getSummaryStatistics($filters),

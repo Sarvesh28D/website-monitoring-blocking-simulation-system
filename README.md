@@ -13,6 +13,7 @@ A professional, production-quality system for monitoring website visits and simu
 - **Python Agent**: Multi-threaded user simulation with realistic browsing patterns
 - **MySQL Database**: Secure data storage with optimized queries and proper indexing
 - **PHP Dashboard**: Responsive web interface with interactive charts and analytics
+- **Weekly Reports**: Comprehensive top 10 sites analysis with detailed metrics and insights
 - **Real-time Analytics**: Live statistics, trends, and comprehensive reporting
 - **Security Implementation**: Prepared statements, input sanitization, and secure coding practices
 - **Performance Optimization**: Connection pooling, caching, and optimized database operations
@@ -136,6 +137,12 @@ The web interface provides:
 
 - **Real-time Statistics**: Live visitor counts and blocking rates
 - **Interactive Charts**: Site popularity and trend visualizations  
+- **Weekly Top Sites Report**: Comprehensive analysis of the top 10 most visited websites with:
+  - Total visits and unique users per site
+  - Block rate analysis with color-coded badges
+  - Daily activity breakdown and peak usage days
+  - Interactive charts showing visits vs. users
+  - Time period analysis and user engagement metrics
 - **Advanced Filtering**: Date ranges, user-specific views, and custom queries
 - **Export Capabilities**: Data export for further analysis
 - **Responsive Design**: Optimized for desktop and mobile devices
@@ -383,9 +390,53 @@ The agent supports multiple simulation modes:
 
 - **Real-time Statistics**: Live visitor counts and blocking rates
 - **Interactive Charts**: Top sites and daily trends visualization
+- **Weekly Reports**: Comprehensive top 10 sites analysis (see below)
 - **User Analysis**: Per-user activity breakdown
 - **Date Filtering**: Custom date range selection
 - **Responsive Design**: Works on desktop and mobile devices
+
+## 📈 Weekly Top Sites Report
+
+**New Feature**: The dashboard now includes a comprehensive weekly report showing the top 10 most visited websites with detailed analytics:
+
+### Report Components
+
+1. **Interactive Chart**: 
+   - Bar chart displaying total visits and unique users
+   - Responsive design with rotation for better readability
+   - Real-time data visualization using Chart.js
+
+2. **Detailed Analytics Table**:
+   - **Ranking**: Sites ranked by total visits
+   - **Visit Metrics**: Total visits with activity period (X/7 days)
+   - **User Engagement**: Unique user count with color-coded badges
+   - **Security Analysis**: Allow/block ratio with blocked visit counts
+   - **Block Rate**: Percentage with color-coded severity indicators
+   - **Time Analysis**: First visit to last visit period tracking
+
+3. **Summary Dashboard**:
+   - Total sites analyzed
+   - Most active website
+   - Highest block rate identification
+   - Report date range
+
+### Badge System
+
+- **User Count Badges**: 
+  - Green (4+ users): High engagement
+  - Yellow (2-3 users): Medium engagement  
+  - Gray (1 user): Low engagement
+
+- **Block Rate Badges**:
+  - Red (50%+): High risk sites
+  - Yellow (20-49%): Medium risk sites
+  - Blue (1-19%): Low risk sites
+  - Green (0%): Clean sites
+
+- **Activity Badges**:
+  - Green (6-7 days): Highly active
+  - Yellow (3-5 days): Moderately active
+  - Gray (1-2 days): Low activity
 
 ## 📊 Database Queries
 
@@ -539,6 +590,16 @@ For issues and questions:
 This project is created for educational and demonstration purposes. Please ensure compliance with your organization's security and data policies when deploying in production environments.
 
 ## 🔄 Version History
+
+- **v1.1** - Weekly Reports Enhancement (September 10, 2025)
+  - **NEW**: Comprehensive weekly top 10 sites report
+  - **NEW**: Interactive chart visualization for weekly data
+  - **NEW**: Detailed analytics table with ranking system
+  - **NEW**: Color-coded badge system for quick insights
+  - **NEW**: Summary dashboard with key metrics
+  - **ENHANCED**: Modular dashboard architecture
+  - **ENHANCED**: Responsive design improvements
+  - **ENHANCED**: Database query optimizations
 
 - **v1.0** - Initial release with core functionality
   - Python simulation agent
