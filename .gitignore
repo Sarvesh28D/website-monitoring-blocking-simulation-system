@@ -1,0 +1,72 @@
+# Website Monitoring & Blocking System - Git Ignore File
+
+# Sensitive configuration files
+php_dashboard/config.php
+python_agent/config.json
+
+# Environment files with sensitive data
+.env
+.env.local
+.env.production
+.env.staging
+
+# Log files
+*.log
+python_agent/*.log
+python_agent/simulation_stats_*.json
+
+# Database files (optional - you might want to include sample data)
+# *.sql
+
+# Python environment and cache
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# PHP specific
+php_dashboard/vendor/
+composer.lock
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Test files (optional)
+test_php.php
+php_dashboard/test.php

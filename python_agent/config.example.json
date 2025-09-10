@@ -1,0 +1,16 @@
+{
+    "database": {
+        "host": "localhost",
+        "database": "website_monitoring",
+        "user": "root",
+        "password": "YOUR_MYSQL_PASSWORD_HERE",
+        "charset": "utf8mb4",
+        "autocommit": true
+    },
+    "simulation": {
+        "num_users": 5,
+        "min_visit_interval": 1,
+        "max_visit_interval": 10,
+        "max_runtime_hours": 24
+    }
+}
