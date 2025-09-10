@@ -21,10 +21,19 @@ A professional, production-quality system for monitoring website visits and simu
 
 This system demonstrates enterprise-level software development practices including:
 
-- **Modular Design**: Clean separation of concerns between data generation, storage, and presentation
+- **Professional Modular Design**: Complete separation into focused components for maintainability
 - **Security Best Practices**: SQL injection prevention, input validation, and secure authentication
 - **Scalable Architecture**: Connection pooling, optimized queries, and efficient resource management
 - **Professional Code Quality**: Comprehensive documentation, error handling, and logging
+
+### Modular Architecture Benefits
+
+- **Python Agent Modules**: Separated into database management, monitoring logic, user simulation, and website generation
+- **PHP Dashboard Modules**: Divided into controller logic, chart management, view rendering, and database connectivity
+- **Database Modules**: Modularized SQL structure with individual components for tables, views, procedures, and triggers
+- **Enhanced Maintainability**: Each module has a single responsibility, making development and debugging easier
+- **Version Control Friendly**: Individual modules can be updated independently without affecting the entire system
+- **Team Development**: Multiple developers can work on different modules simultaneously
 
 ### Key Metrics Tracked
 - User activity patterns and browsing behavior analysis
@@ -52,17 +61,20 @@ psutil>=5.9.5
 
 ### 1. Database Setup
 
-Create and configure the MySQL database:
+Create and configure the MySQL database using the modular structure:
 
 ```sql
-mysql -u root -p < database/schema.sql
+mysql -u root -p < database/modular/install_all.sql
 ```
 
-This creates the `website_monitoring` database with the following tables:
-- `blocked_sites`: Website blocking rules and categories
-- `sites_visited`: User browsing activity logs
-- `user_blocking_stats`: Aggregated user statistics (view)
-- `daily_browsing_trends`: Daily activity trends (view)
+This installs the complete modular database system with:
+- Core tables for monitoring data
+- Analytics views for performance insights  
+- Stored procedures for complex operations
+- Optimized indexes for fast queries
+- Automated triggers for data integrity
+
+For selective installation, see `database/modular/README.md` for individual module setup.
 
 ### 2. Python Agent Configuration
 
@@ -147,16 +159,30 @@ Key analytics include:
 ```
 website-monitoring/
 ├── python_agent/
-│   ├── agent.py              # Main simulation engine
+│   ├── agent.py              # Main coordinator and entry point
+│   ├── database_manager.py   # Database connection and operations
+│   ├── monitoring_agent.py   # Core monitoring and logging logic
+│   ├── user_simulator.py     # User behavior simulation
+│   ├── website_generator.py  # Website URL generation
 │   ├── config.example.json   # Configuration template
 │   └── requirements.txt      # Python dependencies
 ├── database/
-│   ├── schema.sql           # Database structure and sample data
-│   └── queries.sql          # Advanced analytics queries
+│   └── modular/              # Modular database structure
+│       ├── install_all.sql  # Master installer for all modules
+│       ├── 01_database_setup.sql      # Database and user creation
+│       ├── 02_create_tables.sql       # Core table structures
+│       ├── 03_create_views.sql        # Analytics views
+│       ├── 04_sample_data.sql         # Sample data for testing
+│       ├── 05_create_indexes.sql      # Performance indexes
+│       ├── 06_stored_procedures.sql   # Database procedures
+│       └── 07_create_triggers.sql     # Automated triggers
 ├── php_dashboard/
-│   ├── index.php            # Main dashboard interface
-│   ├── db_connect.php       # Database connection manager
-│   └── config.example.php   # Configuration template
+│   ├── index.php            # Main dashboard entry point
+│   ├── DashboardController.php  # Dashboard logic controller
+│   ├── ChartDataManager.php     # Chart data processing
+│   ├── ViewRenderer.php         # View rendering and output
+│   ├── db_connect.php          # Database connection manager
+│   └── config.example.php      # Configuration template
 └── README.md
 ```
 
