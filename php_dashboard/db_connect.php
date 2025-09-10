@@ -26,8 +26,7 @@ class DatabaseConnection {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::ATTR_PERSISTENT => true, // Connection pooling
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+            PDO::ATTR_PERSISTENT => true // Connection pooling
         ]
     ];
     
@@ -89,6 +88,9 @@ class DatabaseConnection {
                 
                 // Test connection
                 $this->pdo->query("SELECT 1");
+                
+                // Set charset
+                $this->pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
                 
                 error_log("Database connection established successfully");
                 return;
